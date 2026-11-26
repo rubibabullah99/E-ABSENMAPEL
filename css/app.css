@@ -1,0 +1,203 @@
+/* E-Absen Mata Pelajaran Custom Stylesheet */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #f8fafc;
+  color: #1e293b;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Status Badges */
+.badge-hadir {
+  background-color: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+.badge-sakit {
+  background-color: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+.badge-izin {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+.badge-alpa {
+  background-color: #ffe4e6;
+  color: #be123c;
+  border: 1px solid #fecdd3;
+}
+
+/* Attendance Radio Pill Buttons */
+.status-pill {
+  transition: all 0.15s ease-in-out;
+  cursor: pointer;
+}
+.status-pill.active-H {
+  background-color: #16a34a !important;
+  color: #ffffff !important;
+  border-color: #16a34a !important;
+  box-shadow: 0 2px 4px rgba(22, 163, 74, 0.25);
+}
+.status-pill.active-S {
+  background-color: #d97706 !important;
+  color: #ffffff !important;
+  border-color: #d97706 !important;
+  box-shadow: 0 2px 4px rgba(217, 119, 6, 0.25);
+}
+.status-pill.active-I {
+  background-color: #0284c7 !important;
+  color: #ffffff !important;
+  border-color: #0284c7 !important;
+  box-shadow: 0 2px 4px rgba(2, 132, 199, 0.25);
+}
+.status-pill.active-A {
+  background-color: #e11d48 !important;
+  color: #ffffff !important;
+  border-color: #e11d48 !important;
+  box-shadow: 0 2px 4px rgba(225, 29, 72, 0.25);
+}
+
+/* Kop Sekolah Double Line */
+.kop-line-double {
+  border-top: 1px solid #000000;
+  border-bottom: 3px solid #000000;
+  height: 6px;
+  margin-top: 8px;
+  margin-bottom: 16px;
+}
+
+/* Printable Sheet Simulator (Paper Preview) */
+.paper-preview {
+  background: white;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  margin: 0 auto;
+  transition: all 0.3s ease;
+  color: #000000;
+}
+
+/* Specific Paper Sizes for Preview Screen */
+.paper-a4-landscape {
+  width: 297mm;
+  min-height: 210mm;
+  padding: 15mm 20mm;
+  box-sizing: border-box;
+}
+.paper-a4-portrait {
+  width: 210mm;
+  min-height: 297mm;
+  padding: 12mm 15mm;
+  box-sizing: border-box;
+}
+.paper-f4-landscape {
+  width: 330mm;
+  min-height: 215mm;
+  padding: 15mm 20mm;
+  box-sizing: border-box;
+}
+.paper-f4-portrait {
+  width: 215mm;
+  min-height: 330mm;
+  padding: 12mm 15mm;
+  box-sizing: border-box;
+}
+
+/* Kop Sekolah Image Banner Precision */
+.print-kop-wrapper {
+  width: 100%;
+  margin-bottom: 12px;
+}
+.print-kop-wrapper img {
+  width: 100% !important;
+  max-height: 45mm !important;
+  object-fit: contain !important;
+  display: block !important;
+  margin: 0 auto !important;
+}
+
+/* Print Specific Rules */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 1cm;
+  }
+
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    font-size: 10pt !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .paper-preview {
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    min-height: auto !important;
+  }
+
+  .print-kop-wrapper {
+    width: 100% !important;
+    margin-bottom: 8px !important;
+  }
+
+  .print-kop-wrapper img {
+    width: 100% !important;
+    max-height: 42mm !important;
+    object-fit: contain !important;
+    display: block !important;
+  }
+
+  /* Table borders in print */
+  .table-print {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+  .table-print th, .table-print td {
+    border: 1px solid #000000 !important;
+    padding: 3px 5px !important;
+    font-size: 8.5pt !important;
+  }
+  .table-print th {
+    background-color: #f1f5f9 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .page-break {
+    page-break-after: always;
+  }
+}
+
+@page {
+  size: A4 portrait;
+  margin: 1cm;
+}

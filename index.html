@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>E-Absen Mata Pelajaran</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- SheetJS (xlsx) CDN for Excel Template & Import -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <!-- Chart.js CDN for reactive attendance diagrams -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- Supabase JS CDN for Cloud Database & Realtime Sync -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Application Stylesheet -->
+  <link rel="stylesheet" href="css/app.css" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-800 flex flex-col antialiased">
+
+  <!-- TOP HEADER / BRAND BAR (No-print) -->
+  <header class="no-print bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <!-- Logo & Title -->
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-500 flex items-center justify-center text-white shadow-md shadow-indigo-100 flex-shrink-0">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="text-base font-bold text-slate-900 tracking-tight">E-Absen Mapel</h1>
+            </div>
+            <p class="text-xs text-slate-500 font-medium hidden sm:block">Aplikasi Presensi Mata Pelajaran</p>
+          </div>
+        </div>
+
+        <!-- Quick Info / Supabase Cloud Badge -->
+        <div class="flex items-center gap-2">
+          <div id="header-cloud-badge" onclick="window.App.switchTab('cloud')" class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 border border-slate-200 cursor-pointer hover:bg-slate-200 transition" title="Klik untuk mengelola koneksi cloud Supabase">
+            <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+            <span>Mode Lokal (LocalStorage)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAIN NAVIGATION TABS (Horizontal on Desktop, Scrollable on Mobile) -->
+      <nav class="flex space-x-1 overflow-x-auto py-2 border-t border-slate-100 no-scrollbar">
+        <button type="button" class="nav-link inline-flex items-center px-3.5 py-2 text-xs font-semibold rounded-lg bg-indigo-50 text-indigo-600 transition" data-tab="dashboard">
+          <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+          Beranda
+        </button>
+
+        <button type="button" class="nav-link inline-flex items-center px-3.5 py-2 text-xs font-medium rounded-lg text-slate-600 hover:bg-slate-50 transition" data-tab="pengaturan">
+          <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          Pengaturan & Kop
+        </button>
+
+        <button type="button" class="nav-link inline-flex items-center px-3.5 py-2 text-xs font-medium rounded-lg text-slate-600 hover:bg-slate-50 transition" data-tab="kelas">
+          <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          </svg>
+          Master Kelas
+        </button>
+
+        <button type="button" class="nav-link inline-flex items-center px-3.5 py-2 text-xs font-medium rounded-lg text-slate-600 hover:bg-slate-50 transition" data-tab="siswa">
+          <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          Master Siswa
+        </button>
+
+        <button type="button" class="nav-link inline-flex items-center px-3.5 py-2 text-xs font-medium rounded-lg text-slate-600 hover:bg-slate-50 transition" data-tab="absensi">
+          <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          Input Absensi Harian
+        </button>
+
+        <button type="button" class="nav-link inline-flex items-center px-3.5 py-2 text-xs font-medium rounded-lg text-slate-600 hover:bg-slate-50 transition" data-tab="rekap">
+          <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+          Rekap & Diagram
+        </button>
+
+        <button type="button" class="nav-link inline-flex items-center px-3.5 py-2 text-xs font-medium rounded-lg text-slate-600 hover:bg-slate-50 transition" data-tab="cetak">
+          <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+          </svg>
+          Cetak (A4 / F4)
+        </button>
+
+        <button type="button" class="nav-link inline-flex items-center px-3.5 py-2 text-xs font-semibold rounded-lg text-emerald-700 bg-emerald-50/70 hover:bg-emerald-100 transition border border-emerald-200" data-tab="cloud">
+          <svg class="w-4 h-4 mr-1.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z" />
+          </svg>
+          Cloud & GitHub
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ========================================================================= -->
+    <!-- TAB 1: BERANDA (DASHBOARD) -->
+    <!-- ========================================================================= -->
+    <div id="tab-dashboard" class="tab-panel space-y-6">
+      <!-- School Header Banner -->
+      <div class="p-6 bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 rounded-2xl text-white shadow-sm relative overflow-hidden">
+        <div class="relative z-10">
+          <h2 id="dash-school-name" class="text-xl md:text-2xl font-black tracking-tight text-white">
+            -
+          </h2>
+          <p id="dash-mapel-name" class="text-xs md:text-sm text-indigo-200 mt-1">
+            Mata Pelajaran: -
+          </p>
+          <div class="mt-4 flex flex-wrap gap-2">
+            <button type="button" onclick="window.App.switchTab('pengaturan')" class="inline-flex items-center px-3.5 py-2 rounded-xl text-xs font-semibold bg-white text-indigo-900 hover:bg-indigo-50 transition shadow-sm">
+              Atur Kop & Identitas
+            </button>
+            <button type="button" onclick="window.App.switchTab('absensi')" class="inline-flex items-center px-3.5 py-2 rounded-xl text-xs font-semibold bg-indigo-600/60 hover:bg-indigo-600 text-white border border-indigo-400/30 transition">
+              Mulai Input Absen
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Counters Grid (Initially 0) -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="p-5 bg-white rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center flex-shrink-0">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Kelas</p>
+            <h3 id="dash-count-classes" class="text-2xl font-black text-slate-900 mt-0.5">0</h3>
+          </div>
+        </div>
+
+        <div class="p-5 bg-white rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Siswa Terdaftar</p>
+            <h3 id="dash-count-students" class="text-2xl font-black text-slate-900 mt-0.5">0</h3>
+          </div>
+        </div>
+
+        <div class="p-5 bg-white rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center flex-shrink-0">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Sesi Absensi Tercatat</p>
+            <h3 id="dash-count-sessions" class="text-2xl font-black text-slate-900 mt-0.5">0</h3>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step by Step Workflow Guide -->
+      <div class="p-6 bg-white rounded-2xl border border-slate-200 shadow-xs">
+        <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Panduan Memulai:</h3>
+        <p class="text-xs text-slate-500 mt-1">Ikuti 5 langkah mudah berikut untuk mengelola data kehadiran:</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mt-5">
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-center">
+            <span class="w-7 h-7 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center mx-auto mb-2">1</span>
+            <h4 class="text-xs font-bold text-slate-800">Atur Kop & Identitas</h4>
+            <p class="text-[11px] text-slate-500 mt-1">Unggah gambar kop surat resmi dan lengkapi identitas mata pelajaran.</p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-center">
+            <span class="w-7 h-7 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center mx-auto mb-2">2</span>
+            <h4 class="text-xs font-bold text-slate-800">Tambah Kelas</h4>
+            <p class="text-[11px] text-slate-500 mt-1">Buat nama kelas (misal: X-A, XI IPA 1) pada Master Kelas.</p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-center">
+            <span class="w-7 h-7 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center mx-auto mb-2">3</span>
+            <h4 class="text-xs font-bold text-slate-800">Input / Import Siswa</h4>
+            <p class="text-[11px] text-slate-500 mt-1">Tambah manual atau download template lalu import file .xlsx.</p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-center">
+            <span class="w-7 h-7 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center mx-auto mb-2">4</span>
+            <h4 class="text-xs font-bold text-slate-800">Absen Harian</h4>
+            <p class="text-[11px] text-slate-500 mt-1">Pilih kelas & tanggal, tandai H/S/I/A, isi alasan bila Sakit/Izin.</p>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-center">
+            <span class="w-7 h-7 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center mx-auto mb-2">5</span>
+            <h4 class="text-xs font-bold text-slate-800">Rekap & Cetak</h4>
+            <p class="text-[11px] text-slate-500 mt-1">Pantau grafik visual dan cetak dokumen format resmi A4/F4.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 2: PENGATURAN KOP SURAT & IDENTITAS -->
+    <!-- ========================================================================= -->
+    <div id="tab-pengaturan" class="tab-panel hidden space-y-6">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-200">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Pengaturan Kop Surat & Identitas</h2>
+          <p class="text-xs text-slate-500">Unggah banner gambar kop surat resmi sekolah dan lengkapi data mata pelajaran & penandatangan.</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Left: Settings Form (7 cols) -->
+        <div class="lg:col-span-7">
+          <form id="settings-form" class="space-y-6 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
+            
+            <!-- Section A: Gambar Kop Surat Resmi Sekolah -->
+            <div>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-900 mb-2 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
+                A. Gambar Kop Surat Resmi Sekolah
+              </h3>
+              <p class="text-xs text-slate-500 mb-3 leading-relaxed">
+                Unggah banner gambar kop surat resmi (sudah mencakup logo, nama instansi/sekolah, alamat, kontak, dan garis kop). Tampilan rekap dan cetak A4/F4 akan otomatis terisi sesuai kop yang diunggah.
+              </p>
+
+              <div class="space-y-3">
+                <!-- Wide Banner Preview Box -->
+                <div class="relative w-full min-h-[110px] max-h-48 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center overflow-hidden p-2">
+                  <img id="settings-kop-preview" src="" alt="Pratinjau Kop Surat" class="w-full h-auto max-h-40 object-contain hidden" />
+                  <div id="settings-kop-empty" class="text-center p-4 text-slate-400">
+                    <svg class="w-10 h-10 mx-auto text-slate-300 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <p class="text-xs font-medium text-slate-500">Belum ada gambar kop surat diunggah</p>
+                    <span class="text-[11px] block mt-0.5 text-slate-400">Klik tombol di bawah untuk memilih gambar kop</span>
+                  </div>
+                </div>
+
+                <!-- Action Buttons & File Input -->
+                <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+                  <input type="file" id="settings-kop-input" accept="image/*" class="hidden" />
+                  <div class="flex items-center gap-2">
+                    <button type="button" onclick="document.getElementById('settings-kop-input').click()" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-xl hover:bg-indigo-100 transition shadow-xs">
+                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                      </svg>
+                      Pilih / Unggah Gambar Kop
+                    </button>
+                    <button type="button" id="btn-remove-kop" class="inline-flex items-center gap-1 px-3.5 py-2 text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl hover:bg-rose-100 transition shadow-xs hidden">
+                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      Hapus Kop
+                    </button>
+                  </div>
+                  <p class="text-[11px] text-slate-400">Format: PNG, JPG, JPEG, WebP (Maks. 3MB)</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section B: Identitas Mapel & Penandatangan -->
+            <div class="pt-4 border-t border-slate-100">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-900 mb-3 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
+                B. Identitas Mata Pelajaran & Penandatangan
+              </h3>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-medium text-slate-700 mb-1">Mata Pelajaran</label>
+                  <input type="text" id="set-mapel" placeholder="Contoh: Matematika Wajib" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+
+                <div>
+                  <label class="block text-xs font-medium text-slate-700 mb-1">Tahun Ajaran</label>
+                  <input type="text" id="set-tahun-ajaran" placeholder="Contoh: 2024/2025" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+
+                <div>
+                  <label class="block text-xs font-medium text-slate-700 mb-1">Semester</label>
+                  <select id="set-semester" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="">-- Pilih Semester --</option>
+                    <option value="Ganjil">Ganjil</option>
+                    <option value="Genap">Genap</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-medium text-slate-700 mb-1">Kota Dokumen (Titimangsa)</label>
+                  <input type="text" id="set-kota-dokumen" placeholder="Contoh: Jakarta" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+
+                <div>
+                  <label class="block text-xs font-medium text-slate-700 mb-1">Nama Guru Mata Pelajaran</label>
+                  <input type="text" id="set-nama-guru" placeholder="Contoh: Budi Santoso, S.Pd." class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+
+                <div>
+                  <label class="block text-xs font-medium text-slate-700 mb-1">NIP / NUPTK Guru</label>
+                  <input type="text" id="set-nip-guru" placeholder="Contoh: 19850101 201001 1 001" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+
+                <div>
+                  <label class="block text-xs font-medium text-slate-700 mb-1">Nama Kepala Sekolah</label>
+                  <input type="text" id="set-nama-kepsek" placeholder="Contoh: Dra. Hj. Siti Rahmah, M.Pd." class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+
+                <div>
+                  <label class="block text-xs font-medium text-slate-700 mb-1">NIP Kepala Sekolah</label>
+                  <input type="text" id="set-nip-kepsek" placeholder="Contoh: 19700315 199502 2 001" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+              <button type="button" id="btn-reset-settings" class="px-4 py-2 text-xs font-semibold text-rose-600 bg-rose-50 border border-rose-200 rounded-xl hover:bg-rose-100 transition shadow-xs">
+                Kosongkan / Reset Form
+              </button>
+
+              <button type="submit" class="px-5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition shadow-sm">
+                Simpan Perubahan
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Right: Live Kop Preview & Danger Zone (5 cols) -->
+        <div class="lg:col-span-5 space-y-6">
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-900 mb-3 flex items-center justify-between">
+              <span>Pratinjau Langsung Kop Sekolah</span>
+              <span class="text-[10px] text-slate-400 font-normal">Otomatis Update</span>
+            </h3>
+            <div id="kop-live-preview">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- Database Management Card -->
+          <div class="p-5 bg-white rounded-2xl border border-rose-100 bg-rose-50/20 shadow-xs">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-rose-800 mb-1">Zona Bahaya (Reset Database)</h3>
+            <p class="text-xs text-slate-500 mb-3">Ingin memulai dari awal lagi? Anda dapat menghapus seluruh data kelas, siswa, dan absensi tersimpan.</p>
+            <button type="button" id="btn-reset-all-database" class="w-full px-4 py-2 text-xs font-bold text-rose-600 bg-white border border-rose-300 rounded-xl hover:bg-rose-600 hover:text-white transition shadow-xs">
+              Hapus Seluruh Database (Reset Bersih)
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 3: MASTER KELAS (EDITABLE) -->
+    <!-- ========================================================================= -->
+    <div id="tab-kelas" class="tab-panel hidden space-y-6">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-200">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Master Data Kelas</h2>
+          <p class="text-xs text-slate-500">Kelola daftar rombongan belajar / kelas tempat Anda mengajar mata pelajaran.</p>
+        </div>
+        <span id="class-count-badge" class="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
+          0 Kelas
+        </span>
+      </div>
+
+      <!-- Add Class Form -->
+      <form id="class-add-form" class="p-5 bg-white rounded-2xl border border-slate-200 shadow-xs">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-900 mb-3">Tambah Kelas Baru</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+          <div class="sm:col-span-6">
+            <label class="block text-xs font-medium text-slate-700 mb-1">Nama Kelas *</label>
+            <input type="text" id="class-nama-input" placeholder="Contoh: X-A, XI MIPA 1, XII IPS 2" required class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+
+          <div class="sm:col-span-4">
+            <label class="block text-xs font-medium text-slate-700 mb-1">Tingkat / Keterangan (Opsional)</label>
+            <input type="text" id="class-tingkat-input" placeholder="Contoh: Fase E / Tingkat 10" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+
+          <div class="sm:col-span-2 flex items-end">
+            <button type="submit" class="w-full px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition shadow-sm h-[38px]">
+              + Tambah
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <!-- Class Table -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200">
+                <th class="px-4 py-3 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider w-12">No</th>
+                <th class="px-4 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wider">Nama Kelas</th>
+                <th class="px-4 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wider">Tingkat / Keterangan</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider w-32">Jumlah Siswa</th>
+                <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider w-40">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="class-table-body">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Empty State Container -->
+        <div id="class-empty-state" class="p-12 text-center">
+          <svg class="w-12 h-12 mx-auto text-slate-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          </svg>
+          <h4 class="text-sm font-bold text-slate-700">Belum Ada Data Kelas</h4>
+          <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto">Silakan tambahkan kelas pertama Anda melalui formulir di atas untuk memulai.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 4: MASTER DATA SISWA + TEMPLATE & IMPORT EXCEL -->
+    <!-- ========================================================================= -->
+    <div id="tab-siswa" class="tab-panel hidden space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Master Data Siswa</h2>
+          <p class="text-xs text-slate-500">Kelola biodata siswa, unduh template resmi, dan import file Excel (.xlsx).</p>
+        </div>
+
+        <!-- Excel Actions -->
+        <div class="flex items-center gap-2">
+          <!-- Hidden Excel File Input -->
+          <input type="file" id="excel-file-import-input" accept=".xlsx, .xls" class="hidden" />
+
+          <button type="button" id="btn-download-excel-template" class="inline-flex items-center px-3.5 py-2 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl hover:bg-emerald-100 transition shadow-xs">
+            <svg class="w-4 h-4 mr-1.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Download Template Excel
+          </button>
+
+          <button type="button" id="btn-trigger-excel-import" class="inline-flex items-center px-3.5 py-2 text-xs font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-xl hover:bg-indigo-100 transition shadow-xs">
+            <svg class="w-4 h-4 mr-1.5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+            Import Excel (.xlsx)
+          </button>
+        </div>
+      </div>
+
+      <!-- Add Student Form -->
+      <form id="student-add-form" class="p-5 bg-white rounded-2xl border border-slate-200 shadow-xs">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-900 mb-3">Tambah Data Siswa Manual</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+          <div class="sm:col-span-4">
+            <label class="block text-xs font-medium text-slate-700 mb-1">Nama Lengkap Siswa *</label>
+            <input type="text" id="student-nama-input" placeholder="Masukkan nama lengkap siswa" required class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-medium text-slate-700 mb-1">Jenis Kelamin *</label>
+            <select id="student-jk-input" required class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="">-- Pilih --</option>
+              <option value="L">Laki-laki (L)</option>
+              <option value="P">Perempuan (P)</option>
+            </select>
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-medium text-slate-700 mb-1">Kelas *</label>
+            <select id="student-kelas-select" required class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="">-- Pilih Kelas --</option>
+            </select>
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-medium text-slate-700 mb-1">NISN (Opsional)</label>
+            <input type="text" id="student-nisn-input" placeholder="NISN" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono" />
+          </div>
+
+          <div class="sm:col-span-2 flex items-end gap-2">
+            <div class="flex-1">
+              <label class="block text-xs font-medium text-slate-700 mb-1">NIS (Opsional)</label>
+              <input type="text" id="student-nis-input" placeholder="NIS" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono" />
+            </div>
+            <button type="submit" class="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition shadow-sm h-[38px] flex-shrink-0">
+              + Simpan
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <!-- Student Filter & Table -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+        <!-- Filter Controls Bar -->
+        <div class="p-4 border-b border-slate-100 bg-slate-50 flex flex-col lg:flex-row items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
+            <select id="student-filter-kelas" class="px-3 py-1.5 text-xs rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium">
+              <option value="">Semua Kelas</option>
+            </select>
+
+            <!-- Filter Jenis Kelamin -->
+            <select id="student-filter-jk" class="px-3 py-1.5 text-xs rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium">
+              <option value="">Semua Gender (L/P)</option>
+              <option value="L">Laki-laki (L)</option>
+              <option value="P">Perempuan (P)</option>
+            </select>
+
+            <span id="student-count-badge" class="text-xs font-semibold text-slate-600 whitespace-nowrap bg-white px-2.5 py-1 rounded-lg border border-slate-200">
+              0 Siswa Terdaftar
+            </span>
+
+            <!-- Download Excel sesuai Filter Button -->
+            <button type="button" id="btn-export-filtered-excel" class="inline-flex items-center px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl hover:bg-emerald-100 transition shadow-xs" title="Download data siswa sesuai filter saat ini ke file Excel (.xlsx)">
+              <svg class="w-3.5 h-3.5 mr-1.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Download Excel Sesuai Filter
+            </button>
+          </div>
+
+          <div class="w-full lg:w-64">
+            <input type="text" id="student-filter-search" placeholder="Cari nama / NISN / NIS..." class="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200">
+                <th class="px-4 py-3 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider w-12">No</th>
+                <th class="px-4 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wider">Nama Lengkap Siswa</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider w-16">L/P</th>
+                <th class="px-4 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wider w-28">NISN</th>
+                <th class="px-4 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wider w-24">NIS</th>
+                <th class="px-4 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wider w-28">Kelas</th>
+                <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider w-36">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="student-table-body">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Empty State Container -->
+        <div id="student-empty-state" class="p-12 text-center">
+          <svg class="w-12 h-12 mx-auto text-slate-300 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          <h4 class="text-sm font-bold text-slate-700">Belum Ada Data Siswa</h4>
+          <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto">Tambahkan siswa secara manual melalui formulir di atas atau gunakan tombol "Import Excel (.xlsx)".</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 5: INPUT ABSENSI HARIAN MATA PELAJARAN -->
+    <!-- ========================================================================= -->
+    <div id="tab-absensi" class="tab-panel hidden space-y-6">
+      <div id="att-form-anchor" class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Form Input Absensi Harian Mata Pelajaran</h2>
+          <p class="text-xs text-slate-500">Tentukan sesi pertemuan, tandai status siswa, dan isi keterangan jika Sakit atau Izin.</p>
+        </div>
+
+        <!-- Edit session banner -->
+        <div id="att-editing-badge" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-50 text-amber-800 border border-amber-200 text-xs font-semibold hidden">
+          <span>Mode Edit Sesi Absensi</span>
+          <button type="button" id="btn-att-cancel-edit" class="underline text-amber-900 hover:text-amber-950 font-bold">Batal Edit</button>
+        </div>
+      </div>
+
+      <!-- Session Filter / Info Form -->
+      <div class="p-5 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-4">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-900">Filter & Parameter Sesi Presensi</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1">Tanggal *</label>
+            <input type="date" id="att-input-tanggal" required class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1">Kelas *</label>
+            <select id="att-select-kelas" required class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold">
+              <option value="">-- Pilih Kelas --</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1">Mata Pelajaran</label>
+            <input type="text" id="att-input-mapel" placeholder="Mata Pelajaran" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1">Pertemuan Ke- *</label>
+            <input type="number" id="att-input-pertemuan" min="1" value="1" required class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1">Jam Pelajaran Ke-</label>
+            <input type="text" id="att-input-jamke" placeholder="Contoh: 1-2 / 3-4" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-700 mb-1">Materi / Topik (Opsional)</label>
+            <input type="text" id="att-input-topik" placeholder="Topik bahasan hari ini" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+        </div>
+
+        <!-- Quick actions bar -->
+        <div class="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100">
+          <div class="flex items-center gap-2">
+            <button type="button" id="btn-att-mark-all-h" class="px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition shadow-xs">
+              ✓ Hadirkan Semua (H)
+            </button>
+            <button type="button" id="btn-att-reset-status" class="px-3 py-1.5 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition">
+              Reset Pilihan
+            </button>
+          </div>
+
+          <button type="button" id="btn-save-attendance" class="px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition shadow-md shadow-indigo-100">
+            Simpan Absensi Pertemuan Ini
+          </button>
+        </div>
+      </div>
+
+      <!-- Students Attendance Roster List -->
+      <div class="space-y-3">
+        <div id="att-students-list-container" class="space-y-2">
+          <!-- Rendered via JS -->
+        </div>
+
+        <!-- Empty State Container -->
+        <div id="att-empty-state" class="p-12 text-center bg-white rounded-2xl border border-slate-200 shadow-xs">
+          <!-- Populated via JS -->
+        </div>
+      </div>
+
+      <!-- Session History Table -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden mt-8">
+        <div class="p-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800">Riwayat Sesi Absensi Tersimpan</h3>
+          <span id="att-history-count-badge" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-200 text-slate-700">
+            0 Sesi Tercatat
+          </span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50/50 border-b border-slate-200">
+                <th class="px-4 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wider w-28">Tanggal</th>
+                <th class="px-4 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wider w-24">Kelas</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider w-20">Pertemuan</th>
+                <th class="px-4 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wider w-36">Mapel</th>
+                <th class="px-4 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wider">Topik</th>
+                <th class="px-4 py-3 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider w-44">Rekap Sesi</th>
+                <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider w-36">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="att-history-table-body">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <div id="att-history-empty-state" class="p-8 text-center text-slate-400 text-xs">
+          Belum ada sesi absensi yang disimpan.
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 6: REKAP BULANAN/SEMESTERAN & DIAGRAM -->
+    <!-- ========================================================================= -->
+    <div id="tab-rekap" class="tab-panel hidden space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Rekapitulasi Kehadiran & Diagram</h2>
+          <p class="text-xs text-slate-500">Tampilan matriks presensi bulanan/semesteran, catatan alasan Sakit & Izin, serta visualisasi grafik.</p>
+        </div>
+      </div>
+
+      <!-- Filter Controls Bar -->
+      <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs flex flex-wrap items-center gap-3">
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Kelas</label>
+          <select id="recap-select-kelas" class="px-3 py-1.5 text-xs rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold">
+            <option value="">-- Pilih Kelas --</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Mode Periode</label>
+          <select id="recap-select-mode" class="px-3 py-1.5 text-xs rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="bulanan">Rekap Bulanan</option>
+            <option value="semesteran">Rekap Semesteran (Semua Pertemuan)</option>
+          </select>
+        </div>
+
+        <div id="recap-month-wrapper">
+          <label class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Bulan</label>
+          <input type="month" id="recap-input-bulan" class="px-3 py-1.5 text-xs rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono" />
+        </div>
+
+        <div id="recap-semester-wrapper" class="hidden">
+          <label class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Semester</label>
+          <select id="recap-select-semester" class="px-3 py-1.5 text-xs rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="Ganjil">Semester Ganjil</option>
+            <option value="Genap">Semester Genap</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Summary Stat Cards -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs">
+          <p class="text-[11px] font-medium text-slate-500 uppercase">Siswa Terdaftar</p>
+          <h4 id="recap-stat-total-siswa" class="text-xl font-bold text-slate-900 mt-1">0</h4>
+        </div>
+        <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs">
+          <p class="text-[11px] font-medium text-slate-500 uppercase">Total Pertemuan</p>
+          <h4 id="recap-stat-total-pertemuan" class="text-xl font-bold text-slate-900 mt-1">0</h4>
+        </div>
+        <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs">
+          <p class="text-[11px] font-medium text-slate-500 uppercase">% Rata-rata Hadir</p>
+          <h4 id="recap-stat-persen-hadir" class="text-xl font-bold text-emerald-600 mt-1">0%</h4>
+        </div>
+        <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs">
+          <p class="text-[11px] font-medium text-slate-500 uppercase">Akumulasi Status</p>
+          <h4 id="recap-stat-akumulasi" class="text-sm font-mono font-bold text-slate-700 mt-2">H:0 | S:0 | I:0 | A:0</h4>
+        </div>
+      </div>
+
+      <!-- Diagram Charts Section -->
+      <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-900">Visualisasi Diagram Kehadiran</h3>
+
+        <div id="recap-charts-container" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <!-- Donut chart (4 cols) -->
+          <div class="lg:col-span-4 h-64 relative flex items-center justify-center">
+            <canvas id="recap-chart-donut"></canvas>
+          </div>
+          <!-- Bar trend chart (8 cols) -->
+          <div class="lg:col-span-8 h-64 relative">
+            <canvas id="recap-chart-bar"></canvas>
+          </div>
+        </div>
+
+        <div id="recap-charts-empty-state" class="py-12 text-center text-slate-400 text-xs">
+          Diagram akan otomatis muncul saat data absensi pada periode ini tersedia.
+        </div>
+      </div>
+
+      <!-- Matrix Attendance Table -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+        <div class="p-4 border-b border-slate-100 bg-slate-50">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800">Tabel Matriks Rekap Kehadiran Siswa</h3>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr id="recap-table-header">
+                <!-- Header columns generated via JS -->
+              </tr>
+            </thead>
+            <tbody id="recap-table-body">
+              <!-- Rows generated via JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <div id="recap-empty-state">
+          <!-- Empty notice via JS -->
+        </div>
+      </div>
+
+      <!-- Notes (Sakit & Izin) Table -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+        <div class="p-4 border-b border-slate-100 bg-slate-50">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800">Daftar Keterangan Sakit & Izin Terinci</h3>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200">
+                <th class="px-4 py-2.5 text-center text-xs font-semibold text-slate-600 uppercase w-12">No</th>
+                <th class="px-4 py-2.5 text-xs font-semibold text-slate-600 uppercase w-32">Tanggal & Sesi</th>
+                <th class="px-4 py-2.5 text-xs font-semibold text-slate-600 uppercase w-48">Nama Siswa</th>
+                <th class="px-4 py-2.5 text-center text-xs font-semibold text-slate-600 uppercase w-20">Status</th>
+                <th class="px-4 py-2.5 text-xs font-semibold text-slate-600 uppercase">Keterangan / Alasan</th>
+              </tr>
+            </thead>
+            <tbody id="recap-notes-table-body">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <div id="recap-notes-empty-state" class="p-8 text-center text-slate-400 text-xs">
+          Tidak ada catatan keterangan sakit atau izin pada periode ini.
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 7: CETAK (A4 / F4) & PRATINJAU DOKUMEN -->
+    <!-- ========================================================================= -->
+    <div id="tab-cetak" class="tab-panel hidden space-y-6">
+      <!-- Toolbar Controls (no-print) -->
+      <div class="no-print p-4 bg-white rounded-2xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-3">
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Kelas</label>
+            <select id="print-select-kelas" class="px-3 py-1.5 text-xs rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-semibold">
+              <option value="">-- Pilih Kelas --</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Periode</label>
+            <select id="print-select-period" class="px-3 py-1.5 text-xs rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="all">Semua Pertemuan (Semester)</option>
+              <option value="bulanan">Bulanan</option>
+            </select>
+          </div>
+
+          <div id="print-month-filter-wrap" class="hidden">
+            <label class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Pilih Bulan</label>
+            <input type="month" id="print-input-bulan" class="px-3 py-1.5 text-xs rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono" />
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Format Ukuran Kertas</label>
+            <select id="print-select-paper" class="px-3 py-1.5 text-xs rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium">
+              <option value="a4-portrait" selected>A4 - Vertikal / Portrait (210 x 297 mm) [Standar]</option>
+              <option value="f4-portrait">F4 / Folio - Vertikal / Portrait (215 x 330 mm)</option>
+              <option value="a4-landscape">A4 - Horizontal / Landscape (297 x 210 mm)</option>
+              <option value="f4-landscape">F4 / Folio - Horizontal / Landscape (330 x 215 mm)</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="button" id="btn-trigger-print" class="inline-flex items-center px-5 py-2.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl transition shadow-md shadow-indigo-100">
+          <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+          </svg>
+          Cetak / Simpan PDF
+        </button>
+      </div>
+
+      <!-- Printable Paper Simulator Container -->
+      <div class="overflow-x-auto pb-8">
+        <div id="print-paper-sheet" class="paper-preview paper-a4-portrait rounded-lg p-6 sm:p-8">
+          <!-- Rendered via JS -->
+        </div>
+
+        <div id="print-empty-state" class="p-12 text-center bg-white rounded-2xl border border-slate-200 shadow-xs hidden">
+          <p class="text-sm font-semibold text-slate-700">Pilih Kelas Terlebih Dahulu</p>
+          <p class="text-xs text-slate-400 mt-1">Pilih kelas pada kontrol di atas untuk melihat lembar cetak dokumen.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 8: INTEGRASI SUPABASE (CLOUD) & GITHUB -->
+    <!-- ========================================================================= -->
+    <div id="tab-cloud" class="tab-panel hidden space-y-6">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-200">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900">Integrasi Supabase Cloud & GitHub Deployment</h2>
+          <p class="text-xs text-slate-500">Hubungkan database PostgreSQL di Supabase untuk penyimpanan awan dan deploy ke GitHub Pages.</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- SISI KIRI: SUPABASE CLOUD DATABASE (7 COLS) -->
+        <div class="lg:col-span-7 space-y-6">
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-5">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 class="text-xs font-bold uppercase tracking-wider text-slate-900">Konfigurasi Supabase Cloud</h3>
+                  <p class="text-[11px] text-slate-400">Database PostgreSQL gratis & realtime</p>
+                </div>
+              </div>
+
+              <!-- Status Badge -->
+              <div id="supabase-status-badge">
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600">Mode Lokal (Offline)</span>
+              </div>
+            </div>
+
+            <!-- Credentials Input -->
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1">Project URL Supabase *</label>
+                <input type="text" id="supabase-url-input" placeholder="https://xyzcompany.supabase.co" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                <p class="text-[10px] text-slate-400 mt-0.5">Dapat ditemukan di Supabase Dashboard -> Project Settings -> API</p>
+              </div>
+
+              <div>
+                <label class="block text-xs font-medium text-slate-700 mb-1">Anon / Public API Key *</label>
+                <input type="password" id="supabase-key-input" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                <p class="text-[10px] text-slate-400 mt-0.5">Gunakan key 'anon' 'public' (aman digunakan di browser)</p>
+              </div>
+
+              <div class="pt-2">
+                <label class="inline-flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" id="supabase-autosync-toggle" checked class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500" />
+                  <span class="text-xs font-medium text-slate-700">Sinkronisasi Otomatis ke Cloud Setiap Perubahan (Auto-Sync)</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <button type="button" id="btn-save-supabase-config" class="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition shadow-xs">
+                  Simpan & Hubungkan
+                </button>
+                <button type="button" id="btn-test-supabase-conn" class="px-3 py-2 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition">
+                  Uji Koneksi
+                </button>
+              </div>
+
+              <button type="button" id="btn-disconnect-supabase" class="px-3 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 rounded-xl transition">
+                Putuskan
+              </button>
+            </div>
+          </div>
+
+          <!-- Cloud Sync Actions Card -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-900">Operasi Sinkronisasi Data Manual</h3>
+            <p class="text-xs text-slate-500">Anda dapat memaksa pengunggahan seluruh data lokal ke cloud atau menarik data terbaru dari cloud ke perangkat ini.</p>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <button type="button" id="btn-sync-up-supabase" class="p-3 text-left bg-emerald-50/60 hover:bg-emerald-100/60 border border-emerald-200 rounded-xl transition">
+                <div class="flex items-center gap-2 text-emerald-800 font-bold text-xs">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                  Upload ke Cloud (Sync Up)
+                </div>
+                <p class="text-[11px] text-slate-500 mt-1">Mengunggah kelas, siswa, absensi, dan kop lokal ke database Supabase.</p>
+              </button>
+
+              <button type="button" id="btn-sync-down-supabase" class="p-3 text-left bg-indigo-50/60 hover:bg-indigo-100/60 border border-indigo-200 rounded-xl transition">
+                <div class="flex items-center gap-2 text-indigo-800 font-bold text-xs">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Tarik dari Cloud (Sync Down)
+                </div>
+                <p class="text-[11px] text-slate-500 mt-1">Mengambil data dari Supabase untuk menggantikan atau memperbarui data lokal.</p>
+              </button>
+            </div>
+
+            <p id="supabase-last-sync-text" class="text-[11px] text-slate-400 font-mono pt-1 text-center sm:text-left">
+              Belum pernah disinkronkan
+            </p>
+          </div>
+
+          <!-- Supabase SQL Schema Helper Card -->
+          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-900">Skrip Skema SQL Supabase</h3>
+              <button type="button" id="btn-copy-supabase-sql" class="inline-flex items-center px-3 py-1 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition shadow-xs">
+                <svg class="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                </svg>
+                Salin Skrip SQL
+              </button>
+            </div>
+            <p class="text-xs text-slate-500">Jalankan skrip ini sekali di menu <strong>SQL Editor</strong> di dashboard Supabase Anda untuk membuat 4 tabel (<code class="bg-slate-100 px-1 py-0.5 rounded">settings</code>, <code class="bg-slate-100 px-1 py-0.5 rounded">classes</code>, <code class="bg-slate-100 px-1 py-0.5 rounded">students</code>, <code class="bg-slate-100 px-1 py-0.5 rounded">attendance_sessions</code>) beserta kebijakan hak akses tanpa login.</p>
+            <div class="p-3 bg-slate-900 rounded-xl text-slate-300 text-[11px] font-mono overflow-x-auto max-h-36">
+              <pre>-- Buka supabase/schema.sql atau klik tombol "Salin Skrip SQL" di atas
+CREATE TABLE public.classes (id TEXT PRIMARY KEY, nama TEXT NOT NULL, ...);
+CREATE TABLE public.students (id TEXT PRIMARY KEY, nama TEXT NOT NULL, ...);
+CREATE TABLE public.attendance_sessions (...);
+CREATE TABLE public.settings (...);</pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- SISI KANAN: GITHUB REPOSITORY & GITHUB PAGES (5 COLS) -->
+        <div class="lg:col-span-5 space-y-6">
+          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+            <div class="flex items-center gap-2 pb-3 border-b border-slate-100">
+              <div class="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-900">Integrasi GitHub Repository</h3>
+                <p class="text-[11px] text-slate-400">Version control & free cloud hosting</p>
+              </div>
+            </div>
+
+            <!-- Workflow info -->
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+              <div class="flex items-center gap-2 text-xs font-bold text-slate-800">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                GitHub Actions Workflow Terpasang
+              </div>
+              <p class="text-[11px] text-slate-500 leading-relaxed">
+                Berkas <code class="text-indigo-600 bg-white px-1 py-0.5 rounded border border-slate-200">.github/workflows/deploy.yml</code> telah disiapkan. Begitu kode didorong ke branch <code class="bg-white px-1 py-0.5 rounded border border-slate-200">main</code>, aplikasi web otomatis live di GitHub Pages!
+              </p>
+            </div>
+
+            <!-- Steps to push -->
+            <div class="space-y-3 pt-1 text-xs">
+              <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">3 Langkah Push ke GitHub:</h4>
+              
+              <div class="space-y-2">
+                <div class="flex items-start gap-2">
+                  <span class="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 font-bold text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
+                  <div>
+                    <p class="font-semibold text-slate-800">Buat Repository Baru di GitHub</p>
+                    <p class="text-slate-500 text-[11px]">Buka <a href="https://github.com/new" target="_blank" class="text-indigo-600 underline">github.com/new</a> dan beri nama misal: <code class="font-mono">e-absen-mapel</code> (Public).</p>
+                  </div>
+                </div>
+
+                <div class="flex items-start gap-2">
+                  <span class="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 font-bold text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
+                  <div>
+                    <p class="font-semibold text-slate-800">Jalankan Setup Otomatis</p>
+                    <p class="text-slate-500 text-[11px]">Klik ganda berkas <code class="bg-slate-100 px-1 py-0.5 rounded font-mono font-semibold">setup-github.bat</code> di folder project atau jalankan perintah git di bawah.</p>
+                  </div>
+                </div>
+
+                <div class="flex items-start gap-2">
+                  <span class="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 font-bold text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
+                  <div>
+                    <p class="font-semibold text-slate-800">Aktifkan GitHub Pages</p>
+                    <p class="text-slate-500 text-[11px]">Di repo GitHub: masuk ke <strong>Settings</strong> -> <strong>Pages</strong> -> ubah Source ke <strong>GitHub Actions</strong>.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Terminal Commands Box -->
+            <div class="space-y-1.5 pt-2">
+              <div class="flex items-center justify-between text-[11px] text-slate-500 font-mono">
+                <span>Perintah Manual Git:</span>
+              </div>
+              <div class="p-3 bg-slate-900 rounded-xl text-slate-200 font-mono text-[11px] space-y-1 overflow-x-auto">
+                <p class="text-slate-400"># Inisialisasi & Commit</p>
+                <p>git init</p>
+                <p>git add .</p>
+                <p>git commit -m "Initial commit: E-Absen"</p>
+                <p>git branch -M main</p>
+                <p class="text-slate-400 mt-2"># Hubungkan & Dorong ke Repo Anda</p>
+                <p>git remote add origin URL_GITHUB_ANDA</p>
+                <p>git push -u origin main</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- GLOBAL MODAL DIALOG -->
+  <!-- ========================================================================= -->
+  <div id="global-modal-overlay" class="no-print fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-200 transform transition-all">
+      <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+        <h3 id="global-modal-title" class="text-sm font-bold text-slate-900">Judul Modal</h3>
+        <button type="button" id="global-modal-close" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div id="global-modal-body" class="p-5">
+        <!-- Injected dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER (Fixed bottom-right) -->
+  <div id="toast-container" class="no-print fixed bottom-5 right-5 z-50 space-y-2 max-w-sm w-full pointer-events-none"></div>
+
+  <!-- JAVASCRIPT MODULES -->
+  <script src="js/store.js"></script>
+  <script src="js/modules/settings.js"></script>
+  <script src="js/modules/classes.js"></script>
+  <script src="js/modules/students.js"></script>
+  <script src="js/modules/attendance.js"></script>
+  <script src="js/modules/recap.js"></script>
+  <script src="js/modules/print.js"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
