@@ -51,14 +51,14 @@ Aplikasi sudah dikonfigurasi penuh untuk di-hosting secara gratis di internet me
    git add .
    git commit -m "Initial commit: E-Absen Mata Pelajaran"
    git branch -M main
-   git remote add origin https://github.com/USERNAME_ANDA/e-absen-mapel.git
+   git remote add origin https://github.com/rubibabullah99/E-ABSENMAPEL.git
    git push -u origin main
    ```
 3. Di repository GitHub Anda:
    - Buka tab **Settings** -> **Pages**.
    - Pada bagian **Build and deployment -> Source**, pilih **GitHub Actions**.
 4. Website Anda akan aktif dan bisa diakses online dari laptop, tablet, atau HP di:
-   `https://USERNAME_ANDA.github.io/e-absen-mapel/`
+   `https://rubibabullah99.github.io/E-ABSENMAPEL/`
 
 ---
 

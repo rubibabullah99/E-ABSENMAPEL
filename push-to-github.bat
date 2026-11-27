@@ -19,10 +19,10 @@ if %errorlevel% equ 0 (
     echo =======================================================
     echo.
     echo Langkah Mengaktifkan GitHub Pages (Gratis):
-    echo 1. Buka repository Anda di browser: https://github.com/rubibabullah99/e-absen-mapel
+    echo 1. Buka repository Anda di browser: https://github.com/rubibabullah99/E-ABSENMAPEL
     echo 2. Masuk ke menu 'Settings' -> 'Pages'
     echo 3. Pada 'Source', pilih 'GitHub Actions'
-    echo 4. Website Anda siap diakses secara online!
+    echo 4. Website aktif di: https://rubibabullah99.github.io/E-ABSENMAPEL/
     echo.
 ) else (
     echo.
