@@ -17,7 +17,16 @@ Aplikasi web modern untuk manajemen presensi mata pelajaran berbasis CRUD penuh,
 
 ---
 
-## ☁️ Integrasi Supabase Cloud Database
+## 📊 Integrasi Google Sheets Cloud Database (Apps Script)
+
+Aplikasi telah terhubung secara otomatis ke **Google Sheets** via **Google Apps Script**:
+- **Multi-Perangkat Otomatis**: Setiap kali Anda menginput data di HP, tablet, atau laptop, data langsung tersimpan di spreadsheet Google Drive Anda.
+- **Auto-Sync Latar Belakang**: Tersinkronisasi secara otomatis setiap kali ada perubahan kelas, siswa, kop surat, atau absensi.
+- **Web App URL Terpasang**: `https://script.google.com/macros/s/AKfycbzNbDct3PSOhTsxUuGgn5pDjhuwstk7WuQoLhQJ14lGxbpMsrl4uqtLUCakt3H08SEuuw/exec`.
+
+---
+
+## ☁️ Integrasi Supabase Cloud Database (Alternatif)
 
 Aplikasi mendukung integrasi cloud dengan **Supabase** (PostgreSQL gratis & realtime):
 - **Mode Dual (Offline-First & Cloud Sync)**: LocalStorage tetap berfungsi sebagai cache berkecepatan tinggi dan penyimpanan cadangan offline. Saat terhubung ke Supabase, data otomatis tersinkronisasi.

@@ -96,6 +96,7 @@ window.App = {
     if (window.RecapModule) window.RecapModule.init();
     if (window.PrintModule) window.PrintModule.init();
     if (window.SupabaseModule) window.SupabaseModule.init();
+    if (window.AppScriptModule) window.AppScriptModule.init();
   },
 
   switchTab(tabId) {

@@ -22,3 +22,5 @@ dist/
 # Local runner helper
 powershell.bat
 
+
+.vercel
