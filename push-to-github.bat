@@ -1,45 +1,41 @@
 @echo off
 chcp 65001 >nul
 echo =======================================================
-echo   PUSH KE GITHUB - E-ABSEN MATA PELAJARAN
+echo   SINKRONISASI REVISI KE GITHUB & VERCEL
+echo   E-ABSEN MATA PELAJARAN
 echo =======================================================
 echo.
-echo URL Remote saat ini:
-git remote get-url origin
+echo Memeriksa perubahan berkas...
+git status -s
 echo.
-echo [1/2] Menjalankan push ke branch main di GitHub...
-echo (Jika jendela browser login GitHub muncul, silakan klik 'Sign in' / 'Authorize')
+set /p PESAN_REVISI="Masukkan catatan revisi (tekan ENTER untuk default: 'update revisi'): "
+if "%PESAN_REVISI%"=="" set PESAN_REVISI=update revisi aplikasi
+
 echo.
-git push -u origin main
+echo [1/3] Menambahkan berkas yang diubah...
+git add .
+
+echo [2/3] Menyimpan catatan perubahan...
+git commit -m "%PESAN_REVISI%"
+
+echo.
+echo [3/3] Mendorong (Push) pembaruan ke GitHub & Vercel...
+git push origin main
 
 if %errorlevel% equ 0 (
     echo.
     echo =======================================================
-    echo   [BERHASIL!] Seluruh kode sukses di-push ke GitHub!
+    echo   [BERHASIL!] Revisi telah terkirim ke GitHub!
+    echo   GitHub Pages & Vercel otomatis meng-update website
+    echo   dalam waktu sekitar 20-30 detik.
     echo =======================================================
     echo.
-    echo Langkah Mengaktifkan GitHub Pages (Gratis):
-    echo 1. Buka repository Anda di browser: https://github.com/rubibabullah99/E-ABSENMAPEL
-    echo 2. Masuk ke menu 'Settings' -> 'Pages'
-    echo 3. Pada 'Source', pilih 'GitHub Actions'
-    echo 4. Website aktif di: https://rubibabullah99.github.io/E-ABSENMAPEL/
-    echo.
+    echo Tautan Website:
+    echo - GitHub Pages : https://rubibabullah99.github.io/E-ABSENMAPEL/
+    echo - Vercel       : https://e-absenmapel.vercel.app
 ) else (
     echo.
-    echo =======================================================
-    echo   [PERIKSA AUTENTIKASI / URL REPOSITORY]
-    echo =======================================================
-    echo.
-    echo Jika muncul 'Repository not found', kemungkinan:
-    echo 1. Repository dibuat sebagai 'Private' dan perlu login browser sekali ini, atau
-    echo 2. Nama repository di GitHub berbeda dengan 'e-absen-mapel'.
-    echo.
-    set /p NEW_URL="Ketik/Paste URL Repository GitHub Anda (tekan ENTER jika sudah sesuai): "
-    if not "%NEW_URL%"=="" (
-        git remote set-url origin %NEW_URL%
-        echo Mencoba push ke %NEW_URL%...
-        git push -u origin main
-    )
+    echo [ERROR] Gagal melakukan push. Pastikan koneksi internet aktif.
 )
 
 echo.
