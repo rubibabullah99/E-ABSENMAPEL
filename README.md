@@ -22,7 +22,7 @@ Aplikasi web modern untuk manajemen presensi mata pelajaran berbasis CRUD penuh,
 Aplikasi telah terhubung secara otomatis ke **Google Sheets** via **Google Apps Script**:
 - **Multi-Perangkat Otomatis**: Setiap kali Anda menginput data di HP, tablet, atau laptop, data langsung tersimpan di spreadsheet Google Drive Anda.
 - **Auto-Sync Latar Belakang**: Tersinkronisasi secara otomatis setiap kali ada perubahan kelas, siswa, kop surat, atau absensi.
-- **Web App URL Terpasang**: `https://script.google.com/macros/s/AKfycbzNbDct3PSOhTsxUuGgn5pDjhuwstk7WuQoLhQJ14lGxbpMsrl4uqtLUCakt3H08SEuuw/exec`.
+- **Web App URL Terpasang**: `https://script.google.com/macros/s/AKfycbz-c_BF0B4ooJs9gp251uKFo7-DgzEznI2sLbZ96oPM0UxC3nDkQ7pdDVYCOcumtVeQWA/exec`.
 
 ---
 

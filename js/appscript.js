@@ -7,7 +7,7 @@
 const APPSCRIPT_STORAGE_KEY = 'e_absen_appscript_config';
 
 const DEFAULT_APPSCRIPT_CONFIG = {
-  url: 'https://script.google.com/macros/s/AKfycbzNbDct3PSOhTsxUuGgn5pDjhuwstk7WuQoLhQJ14lGxbpMsrl4uqtLUCakt3H08SEuuw/exec',
+  url: 'https://script.google.com/macros/s/AKfycbz-c_BF0B4ooJs9gp251uKFo7-DgzEznI2sLbZ96oPM0UxC3nDkQ7pdDVYCOcumtVeQWA/exec',
   autoSync: true,
   lastSync: null
 };
