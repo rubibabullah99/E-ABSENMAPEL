@@ -1,0 +1,14 @@
+{
+  "name": "e-absenmapel",
+  "version": "1.0.0",
+  "description": "Aplikasi Web E-Absen Mata Pelajaran (White-Label & Full Editable)",
+  "scripts": {},
+  "keywords": [
+    "e-absen",
+    "e-absenmapel",
+    "presensi",
+    "sekolah"
+  ],
+  "author": "rubibabullah99",
+  "license": "MIT"
+}
