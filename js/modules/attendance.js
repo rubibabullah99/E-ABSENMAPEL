@@ -245,12 +245,26 @@ window.AttendanceModule = {
     let html = '';
     students.forEach((student, index) => {
       const savedRecord = recordMap[student.id];
-      const currentStatus = savedRecord ? savedRecord.status : ''; // 'H', 'S', 'I', 'A' or ''
+      const currentStatus = savedRecord ? (savedRecord.status || '') : ''; // 'H', 'S', 'I', 'A' or ''
       const savedKeterangan = savedRecord ? (savedRecord.keterangan || '') : '';
       const isSOrI = currentStatus === 'S' || currentStatus === 'I';
 
+      // Status pill classes helper
+      const getPillClass = (statusKey) => {
+        if (currentStatus === statusKey) {
+          if (statusKey === 'H') return 'status-pill px-3 py-1.5 rounded-lg text-xs font-bold border active-H bg-emerald-600 text-white border-emerald-600 shadow-sm';
+          if (statusKey === 'S') return 'status-pill px-3 py-1.5 rounded-lg text-xs font-bold border active-S bg-amber-500 text-white border-amber-500 shadow-sm';
+          if (statusKey === 'I') return 'status-pill px-3 py-1.5 rounded-lg text-xs font-bold border active-I bg-sky-500 text-white border-sky-500 shadow-sm';
+          if (statusKey === 'A') return 'status-pill px-3 py-1.5 rounded-lg text-xs font-bold border active-A bg-rose-600 text-white border-rose-600 shadow-sm';
+        }
+        if (statusKey === 'H') return 'status-pill px-3 py-1.5 rounded-lg text-xs font-bold border bg-slate-50 text-slate-600 border-slate-200 hover:bg-emerald-50 hover:text-emerald-700';
+        if (statusKey === 'S') return 'status-pill px-3 py-1.5 rounded-lg text-xs font-bold border bg-slate-50 text-slate-600 border-slate-200 hover:bg-amber-50 hover:text-amber-700';
+        if (statusKey === 'I') return 'status-pill px-3 py-1.5 rounded-lg text-xs font-bold border bg-slate-50 text-slate-600 border-slate-200 hover:bg-sky-50 hover:text-sky-700';
+        return 'status-pill px-3 py-1.5 rounded-lg text-xs font-bold border bg-slate-50 text-slate-600 border-slate-200 hover:bg-rose-50 hover:text-rose-700';
+      };
+
       html += `
-        <div class="student-attendance-card p-3.5 bg-white rounded-xl border border-slate-200 shadow-sm transition hover:border-slate-300" data-student-id="${student.id}" data-student-name="${escapeHtml(student.nama)}">
+        <div class="student-attendance-card p-3.5 bg-white rounded-xl border border-slate-200 shadow-sm transition hover:border-slate-300" data-student-id="${student.id}" data-student-name="${escapeHtml(student.nama)}" data-status="${currentStatus}">
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div class="flex items-center gap-3">
               <span class="w-6 h-6 rounded-full bg-slate-100 text-slate-500 text-xs font-mono font-medium flex items-center justify-center flex-shrink-0">
@@ -267,16 +281,16 @@ window.AttendanceModule = {
 
             <!-- H / S / I / A segmented controls -->
             <div class="flex items-center gap-1.5 self-start md:self-auto">
-              <button type="button" class="status-pill px-3 py-1.5 rounded-lg text-xs font-bold border ${currentStatus === 'H' ? 'active-H' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-emerald-50 hover:text-emerald-700'}" data-student-id="${student.id}" data-status="H">
+              <button type="button" class="${getPillClass('H')}" data-student-id="${student.id}" data-status="H">
                 H (Hadir)
               </button>
-              <button type="button" class="status-pill px-3 py-1.5 rounded-lg text-xs font-bold border ${currentStatus === 'S' ? 'active-S' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-amber-50 hover:text-amber-700'}" data-student-id="${student.id}" data-status="S">
+              <button type="button" class="${getPillClass('S')}" data-student-id="${student.id}" data-status="S">
                 S (Sakit)
               </button>
-              <button type="button" class="status-pill px-3 py-1.5 rounded-lg text-xs font-bold border ${currentStatus === 'I' ? 'active-I' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-sky-50 hover:text-sky-700'}" data-student-id="${student.id}" data-status="I">
+              <button type="button" class="${getPillClass('I')}" data-student-id="${student.id}" data-status="I">
                 I (Izin)
               </button>
-              <button type="button" class="status-pill px-3 py-1.5 rounded-lg text-xs font-bold border ${currentStatus === 'A' ? 'active-A' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-rose-50 hover:text-rose-700'}" data-student-id="${student.id}" data-status="A">
+              <button type="button" class="${getPillClass('A')}" data-student-id="${student.id}" data-status="A">
                 A (Alpa)
               </button>
             </div>
@@ -298,62 +312,83 @@ window.AttendanceModule = {
     this.studentsContainer.innerHTML = html;
   },
 
-  setStudentStatus(studentId, status) {
-    const card = this.studentsContainer.querySelector(`[data-student-id="${studentId}"]`);
+  setStudentStatus(studentIdOrCard, status) {
+    let card = null;
+    let studentId = '';
+
+    if (typeof studentIdOrCard === 'string') {
+      studentId = studentIdOrCard;
+      if (this.studentsContainer) {
+        card = this.studentsContainer.querySelector(`[data-student-id="${studentId}"]`);
+      }
+      if (!card) {
+        card = document.querySelector(`.student-attendance-card[data-student-id="${studentId}"]`);
+      }
+    } else if (studentIdOrCard && studentIdOrCard.nodeType) {
+      card = studentIdOrCard;
+      studentId = card.dataset.studentId || '';
+    }
+
     if (!card) return;
+
+    // Direct state storage on card
+    card.dataset.status = status || '';
 
     // Reset pill styles for this student
     const pills = card.querySelectorAll('.status-pill');
     pills.forEach(p => {
-      p.className = `status-pill px-3 py-1.5 rounded-lg text-xs font-bold border bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100`;
+      p.className = 'status-pill px-3 py-1.5 rounded-lg text-xs font-bold border bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100';
     });
 
     // Highlight active pill
-    const activePill = card.querySelector(`.status-pill[data-status="${status}"]`);
-    if (activePill) {
-      activePill.className = `status-pill px-3 py-1.5 rounded-lg text-xs font-bold border active-${status}`;
+    if (status) {
+      const activePill = card.querySelector(`.status-pill[data-status="${status}"]`);
+      if (activePill) {
+        let activeClass = '';
+        if (status === 'H') activeClass = 'active-H bg-emerald-600 text-white border-emerald-600 shadow-sm';
+        else if (status === 'S') activeClass = 'active-S bg-amber-500 text-white border-amber-500 shadow-sm';
+        else if (status === 'I') activeClass = 'active-I bg-sky-500 text-white border-sky-500 shadow-sm';
+        else if (status === 'A') activeClass = 'active-A bg-rose-600 text-white border-rose-600 shadow-sm';
+
+        activePill.className = `status-pill px-3 py-1.5 rounded-lg text-xs font-bold border ${activeClass}`;
+      }
     }
 
-    // Toggle Keterangan input
-    const ketWrap = document.getElementById(`ket-wrap-${studentId}`);
-    const ketBadge = document.getElementById(`ket-badge-${studentId}`);
-    const ketInput = document.getElementById(`ket-input-${studentId}`);
+    // Toggle Keterangan input safely
+    const ketWrap = card.querySelector('.keterangan-wrapper') || document.getElementById(`ket-wrap-${studentId}`);
+    const ketBadge = ketWrap ? (ketWrap.querySelector('[id^="ket-badge-"]') || document.getElementById(`ket-badge-${studentId}`)) : null;
+    const ketInput = ketWrap ? (ketWrap.querySelector('.input-keterangan') || document.getElementById(`ket-input-${studentId}`)) : null;
 
     if (status === 'S' || status === 'I') {
-      ketWrap.classList.remove('hidden');
-      ketBadge.textContent = status === 'S' ? 'Keterangan Sakit:' : 'Keterangan Izin:';
-      if (!ketInput.value) {
+      if (ketWrap) ketWrap.classList.remove('hidden');
+      if (ketBadge) ketBadge.textContent = status === 'S' ? 'Keterangan Sakit:' : 'Keterangan Izin:';
+      if (ketInput && !ketInput.value) {
         ketInput.focus();
       }
     } else {
-      ketWrap.classList.add('hidden');
-      ketInput.value = ''; // Clear note when set to Hadir or Alpa
+      if (ketWrap) ketWrap.classList.add('hidden');
+      if (ketInput) ketInput.value = ''; // Clear note when set to Hadir or Alpa
     }
   },
 
   setAllStatus(status) {
-    const cards = this.studentsContainer.querySelectorAll('.student-attendance-card');
-    if (cards.length === 0) return;
+    if (!this.studentsContainer) {
+      this.studentsContainer = document.getElementById('att-students-list-container');
+    }
+    const cards = this.studentsContainer ? this.studentsContainer.querySelectorAll('.student-attendance-card') : [];
+    if (!cards || cards.length === 0) {
+      window.App.toast('Pilih kelas terlebih dahulu atau pastikan ada siswa di kelas ini', 'warning');
+      return;
+    }
 
     cards.forEach(card => {
-      const studentId = card.dataset.studentId;
-      if (status) {
-        this.setStudentStatus(studentId, status);
-      } else {
-        // Reset all
-        const pills = card.querySelectorAll('.status-pill');
-        pills.forEach(p => {
-          p.className = `status-pill px-3 py-1.5 rounded-lg text-xs font-bold border bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100`;
-        });
-        const ketWrap = document.getElementById(`ket-wrap-${studentId}`);
-        const ketInput = document.getElementById(`ket-input-${studentId}`);
-        if (ketWrap) ketWrap.classList.add('hidden');
-        if (ketInput) ketInput.value = '';
-      }
+      this.setStudentStatus(card, status);
     });
 
     if (status === 'H') {
-      window.App.toast('Semua siswa ditandai Hadir (H)', 'info');
+      window.App.toast(`Semua (${cards.length}) siswa berhasil ditandai Hadir (H)`, 'success');
+    } else if (!status) {
+      window.App.toast('Pilihan kehadiran siswa telah di-reset', 'info');
     }
   },
 
@@ -377,8 +412,8 @@ window.AttendanceModule = {
       return;
     }
 
-    const cards = this.studentsContainer.querySelectorAll('.student-attendance-card');
-    if (cards.length === 0) {
+    const cards = this.studentsContainer ? this.studentsContainer.querySelectorAll('.student-attendance-card') : [];
+    if (!cards || cards.length === 0) {
       window.App.toast('Tidak ada siswa di kelas ini untuk diabsen', 'warning');
       return;
     }
@@ -390,15 +425,18 @@ window.AttendanceModule = {
       const studentId = card.dataset.studentId;
       const studentName = card.dataset.studentName;
 
-      // Check which status pill is active
-      const activePill = card.querySelector('.status-pill[class*="active-"]');
-      const status = activePill ? activePill.dataset.status : null;
+      // Check card status first, fallback to active pill
+      let status = card.dataset.status;
+      if (!status) {
+        const activePill = card.querySelector('.status-pill[class*="active-"]');
+        status = activePill ? activePill.dataset.status : null;
+      }
 
       if (!status) {
         hasUnselected = true;
       }
 
-      const ketInput = document.getElementById(`ket-input-${studentId}`);
+      const ketInput = card.querySelector('.input-keterangan') || document.getElementById(`ket-input-${studentId}`);
       const keterangan = ketInput ? ketInput.value.trim() : '';
 
       records.push({
