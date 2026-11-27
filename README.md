@@ -37,11 +37,16 @@ Aplikasi mendukung integrasi cloud dengan **Supabase** (PostgreSQL gratis & real
 
 ---
 
-## 🚀 Integrasi GitHub & GitHub Pages Deployment
+## 🚀 Integrasi GitHub Pages & Vercel Deployment
 
-Aplikasi sudah dikonfigurasi penuh untuk di-hosting secara gratis di internet menggunakan **GitHub Pages**:
-- **GitHub Actions Workflow**: Berkas `.github/workflows/deploy.yml` telah dipasang. Setiap kali Anda melakukan `git push` ke branch `main`, GitHub akan otomatis mendeploy aplikasi web ini.
-- **Skrip Otomatisasi Windows**: Berkas `setup-github.bat` dapat diklik ganda untuk otomatis inisialisasi Git, commit, dan push ke repository Anda.
+Aplikasi sudah dikonfigurasi penuh untuk di-hosting secara gratis di internet menggunakan **GitHub Pages** maupun **Vercel**:
+- **GitHub Pages**: Otomatis aktif via GitHub Actions di `https://rubibabullah99.github.io/E-ABSENMAPEL/`.
+- **Vercel**: Berkas konfigurasi `vercel.json` telah disediakan sehingga mendukung routing SPA dan deployment kilat.
+
+### Cara Menghubungkan ke Vercel (Otomatis Sync):
+1. Buka [https://vercel.com/new](https://vercel.com/new) dan login dengan akun GitHub Anda.
+2. Di daftar repository, klik **Import** pada `E-ABSENMAPEL`.
+3. Klik tombol **Deploy**. Vercel akan otomatis memberikan domain HTTPS gratis (misal: `e-absenmapel.vercel.app`) dan otomatis update setiap kali ada perubahan kode di GitHub!
 
 ### Cara Push ke GitHub:
 1. Buat repository baru di [github.com/new](https://github.com/new), misalnya beri nama `e-absen-mapel` (Public).
