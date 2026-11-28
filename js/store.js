@@ -19,7 +19,7 @@ const DEFAULT_SETTINGS = {
   tahunAjaran: '',       // Contoh: 2024/2025
   semester: '',          // Ganjil / Genap
   namaGuru: '',          // Nama guru pengampu
-  nipGuru: '',           // NIP / NUPTK guru
+  nipGuru: '',           // NIP guru
   namaKepsek: '',        // Nama kepala sekolah
   nipKepsek: '',         // NIP kepala sekolah
   kotaDokumen: ''        // Kota/Kabupaten untuk titimangsa dokumen

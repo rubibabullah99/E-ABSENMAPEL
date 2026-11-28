@@ -18,7 +18,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <!-- Application Stylesheet -->
-  <link rel="stylesheet" href="css/app.css?v=1.0.1" />
+  <link rel="stylesheet" href="css/app.css?v=1.0.2" />
 
   <script>
     tailwind.config = {
@@ -59,12 +59,14 @@
           </div>
         </div>
 
-        <!-- Quick Info / Cloud Badge -->
+        <!-- Quick 1-Click Cloud Sync Button -->
         <div class="flex items-center gap-2">
-          <div id="header-cloud-badge" onclick="window.App.switchTab('cloud')" class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 cursor-pointer hover:bg-emerald-100 transition shadow-xs" title="Klik untuk mengelola koneksi Google Sheets Cloud">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>Google Sheets Aktif</span>
-          </div>
+          <button type="button" id="btn-quick-sync-cloud" onclick="window.AppScriptModule.quickSync()" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-95 transition shadow-xs shadow-emerald-200 cursor-pointer" title="Klik 1x untuk sinkron data ke Google Sheets Cloud (GAS)">
+            <svg id="sync-icon-spin" class="w-4 h-4 text-emerald-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span id="sync-label-text">Sinkron Cloud</span>
+          </button>
         </div>
       </div>
 
@@ -118,13 +120,6 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
           </svg>
           Cetak (A4 / F4)
-        </button>
-
-        <button type="button" class="nav-link inline-flex items-center px-3.5 py-2 text-xs font-semibold rounded-lg text-emerald-700 bg-emerald-50/70 hover:bg-emerald-100 transition border border-emerald-200" data-tab="cloud">
-          <svg class="w-4 h-4 mr-1.5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z" />
-          </svg>
-          Cloud & GitHub
         </button>
       </nav>
     </div>
@@ -334,7 +329,7 @@
                 </div>
 
                 <div>
-                  <label class="block text-xs font-medium text-slate-700 mb-1">NIP / NUPTK Guru</label>
+                  <label class="block text-xs font-medium text-slate-700 mb-1">NIP Guru</label>
                   <input type="text" id="set-nip-guru" placeholder="Contoh: 19850101 201001 1 001" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
                 </div>
 
@@ -346,6 +341,68 @@
                 <div>
                   <label class="block text-xs font-medium text-slate-700 mb-1">NIP Kepala Sekolah</label>
                   <input type="text" id="set-nip-kepsek" placeholder="Contoh: 19700315 199502 2 001" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Section C: Integrasi Cloud Database (Google Sheets / GAS) -->
+            <div class="pt-4 border-t border-slate-100">
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+                  C. Integrasi Cloud Database (Google Sheets)
+                </h3>
+                <div id="appscript-status-badge">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>Terhubung
+                  </span>
+                </div>
+              </div>
+              <p class="text-xs text-slate-500 mb-3 leading-relaxed">
+                Menyimpan data kelas, siswa, absensi, dan kop langsung ke Google Sheets secara otomatis agar sinkron di HP dan Laptop tanpa server rumit.
+              </p>
+
+              <div class="space-y-3">
+                <div>
+                  <label class="block text-xs font-medium text-slate-700 mb-1">Web App URL Google Apps Script</label>
+                  <input type="url" id="appscript-url-input" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                </div>
+
+                <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+                  <label class="inline-flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" id="appscript-autosync-toggle" checked class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500" />
+                    <span class="text-xs font-medium text-slate-700">Sinkronisasi Otomatis Setiap Perubahan (Auto-Sync)</span>
+                  </label>
+
+                  <div class="flex items-center gap-2">
+                    <button type="button" id="btn-test-appscript-conn" class="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition">
+                      Uji Koneksi
+                    </button>
+                    <button type="button" id="btn-save-appscript-config" class="px-3.5 py-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition shadow-xs">
+                      Simpan URL Cloud
+                    </button>
+                  </div>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs">
+                  <div class="flex items-center gap-2">
+                    <button type="button" id="btn-sync-up-appscript" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl hover:bg-emerald-100 transition shadow-xs">
+                      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                      Upload Manual
+                    </button>
+                    <button type="button" id="btn-sync-down-appscript" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-teal-700 bg-teal-50 border border-teal-200 rounded-xl hover:bg-teal-100 transition shadow-xs">
+                      <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      Tarik Data
+                    </button>
+                  </div>
+
+                  <p id="appscript-last-sync-text" class="text-[11px] text-slate-400 font-mono">
+                    Belum pernah disinkronkan
+                  </p>
                 </div>
               </div>
             </div>
@@ -610,7 +667,7 @@
       <!-- Session Filter / Info Form -->
       <div class="p-5 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-4">
         <h3 class="text-xs font-bold uppercase tracking-wider text-slate-900">Filter & Parameter Sesi Presensi</h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <div>
             <label class="block text-xs font-medium text-slate-700 mb-1">Tanggal *</label>
             <input type="date" id="att-input-tanggal" required class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono" />
@@ -631,16 +688,6 @@
           <div>
             <label class="block text-xs font-medium text-slate-700 mb-1">Pertemuan Ke- *</label>
             <input type="number" id="att-input-pertemuan" min="1" value="1" required class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono" />
-          </div>
-
-          <div>
-            <label class="block text-xs font-medium text-slate-700 mb-1">Jam Pelajaran Ke-</label>
-            <input type="text" id="att-input-jamke" placeholder="Contoh: 1-2 / 3-4" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-          </div>
-
-          <div>
-            <label class="block text-xs font-medium text-slate-700 mb-1">Materi / Topik (Opsional)</label>
-            <input type="text" id="att-input-topik" placeholder="Topik bahasan hari ini" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" />
           </div>
         </div>
 
@@ -690,7 +737,6 @@
                 <th class="px-4 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wider w-24">Kelas</th>
                 <th class="px-4 py-3 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider w-20">Pertemuan</th>
                 <th class="px-4 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wider w-36">Mapel</th>
-                <th class="px-4 py-3 text-xs font-semibold text-slate-600 uppercase tracking-wider">Topik</th>
                 <th class="px-4 py-3 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider w-44">Rekap Sesi</th>
                 <th class="px-4 py-3 text-right text-xs font-semibold text-slate-600 uppercase tracking-wider w-36">Aksi</th>
               </tr>
@@ -901,294 +947,7 @@
       </div>
     </div>
 
-    <!-- ========================================================================= -->
-    <!-- TAB 8: INTEGRASI CLOUD DATABASE & GITHUB -->
-    <!-- ========================================================================= -->
-    <div id="tab-cloud" class="tab-panel hidden space-y-6">
-      <div class="flex items-center justify-between pb-4 border-b border-slate-200">
-        <div>
-          <h2 class="text-lg font-bold text-slate-900">Integrasi Cloud Database & Deployment</h2>
-          <p class="text-xs text-slate-500">Penyimpanan awan otomatis via Google Sheets (Apps Script) & Supabase agar data selalu sinkron di seluruh perangkat (HP & Laptop).</p>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        <!-- SISI KIRI: CLOUD DATABASE (7 COLS) -->
-        <div class="lg:col-span-7 space-y-6">
-          
-          <!-- KARTU 1: GOOGLE SHEETS CLOUD DATABASE (PRIMARY & AUTO-SYNC) -->
-          <div class="bg-white p-6 rounded-2xl border-2 border-emerald-500/50 shadow-sm space-y-5 relative overflow-hidden">
-            <div class="absolute top-0 right-0 px-3 py-1 bg-emerald-600 text-[10px] font-black text-white rounded-bl-xl uppercase tracking-wider">
-              Aktif & Terhubung
-            </div>
-
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
-                  <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
-                  </svg>
-                </div>
-                <div>
-                  <h3 class="text-xs font-bold uppercase tracking-wider text-slate-900">Google Sheets Cloud Database</h3>
-                  <p class="text-[11px] text-slate-500">Google Apps Script Web App (Multi-Perangkat Otomatis)</p>
-                </div>
-              </div>
-
-              <!-- Status Badge -->
-              <div id="appscript-status-badge">
-                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
-                  <span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>Terhubung
-                </span>
-              </div>
-            </div>
-
-            <!-- Web App URL Input -->
-            <div class="space-y-3">
-              <div>
-                <label class="block text-xs font-medium text-slate-700 mb-1">Web App URL Google Apps Script</label>
-                <input type="text" id="appscript-url-input" value="https://script.google.com/macros/s/AKfycbz-c_BF0B4ooJs9gp251uKFo7-DgzEznI2sLbZ96oPM0UxC3nDkQ7pdDVYCOcumtVeQWA/exec" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 font-mono text-slate-700 bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-                <p class="text-[10px] text-slate-400 mt-0.5">Tersambung ke Google Drive & Spreadsheet Anda. Siap pakai di semua perangkat.</p>
-              </div>
-
-              <div class="pt-1">
-                <label class="inline-flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" id="appscript-autosync-toggle" checked class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500" />
-                  <span class="text-xs font-medium text-slate-700">Sinkronisasi Otomatis Setiap Perubahan Data (Auto-Sync)</span>
-                </label>
-              </div>
-            </div>
-
-            <!-- Operasi Manual Sync -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-              <button type="button" id="btn-sync-up-appscript" class="p-3 text-left bg-emerald-50 hover:bg-emerald-100/70 border border-emerald-200 rounded-xl transition shadow-xs">
-                <div class="flex items-center gap-2 text-emerald-800 font-bold text-xs">
-                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                  </svg>
-                  Upload ke Google Sheets (Sync Up)
-                </div>
-                <p class="text-[10px] text-slate-500 mt-1">Kirim seluruh data lokal perangkat ini ke Google Sheets.</p>
-              </button>
-
-              <button type="button" id="btn-sync-down-appscript" class="p-3 text-left bg-teal-50 hover:bg-teal-100/70 border border-teal-200 rounded-xl transition shadow-xs">
-                <div class="flex items-center gap-2 text-teal-800 font-bold text-xs">
-                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                  Tarik dari Google Sheets (Sync Down)
-                </div>
-                <p class="text-[10px] text-slate-500 mt-1">Ambil data terbaru dari Google Sheets ke perangkat ini.</p>
-              </button>
-            </div>
-
-            <div class="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500">
-              <span id="appscript-last-sync-text" class="font-mono text-slate-400">Belum pernah disinkronkan</span>
-              <div class="flex gap-2">
-                <button type="button" id="btn-test-appscript-conn" class="px-2.5 py-1 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition">
-                  Uji Koneksi
-                </button>
-                <button type="button" id="btn-save-appscript-config" class="px-3 py-1 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition shadow-xs">
-                  Simpan Pengaturan
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- KARTU 2: SUPABASE CLOUD (ALTERNATIF) -->
-          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-5">
-            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
-                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 00-9.78 2.096A4.001 4.001 0 003 15z" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 class="text-xs font-bold uppercase tracking-wider text-slate-900">Konfigurasi Supabase Cloud (Alternatif)</h3>
-                  <p class="text-[11px] text-slate-400">Database PostgreSQL realtime</p>
-                </div>
-              </div>
-
-              <!-- Status Badge -->
-              <div id="supabase-status-badge">
-                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600">Mode Lokal (Offline)</span>
-              </div>
-            </div>
-
-            <!-- Credentials Input -->
-            <div class="space-y-3">
-              <div>
-                <label class="block text-xs font-medium text-slate-700 mb-1">Project URL Supabase *</label>
-                <input type="text" id="supabase-url-input" placeholder="https://xyzcompany.supabase.co" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-                <p class="text-[10px] text-slate-400 mt-0.5">Dapat ditemukan di Supabase Dashboard -> Project Settings -> API</p>
-              </div>
-
-              <div>
-                <label class="block text-xs font-medium text-slate-700 mb-1">Anon / Public API Key *</label>
-                <input type="password" id="supabase-key-input" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." class="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-                <p class="text-[10px] text-slate-400 mt-0.5">Gunakan key 'anon' 'public' (aman digunakan di browser)</p>
-              </div>
-
-              <div class="pt-2">
-                <label class="inline-flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" id="supabase-autosync-toggle" checked class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500" />
-                  <span class="text-xs font-medium text-slate-700">Sinkronisasi Otomatis ke Cloud Setiap Perubahan (Auto-Sync)</span>
-                </label>
-              </div>
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
-              <div class="flex items-center gap-2">
-                <button type="button" id="btn-save-supabase-config" class="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition shadow-xs">
-                  Simpan & Hubungkan
-                </button>
-                <button type="button" id="btn-test-supabase-conn" class="px-3 py-2 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition">
-                  Uji Koneksi
-                </button>
-              </div>
-
-              <button type="button" id="btn-disconnect-supabase" class="px-3 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 rounded-xl transition">
-                Putuskan
-              </button>
-            </div>
-          </div>
-
-          <!-- Cloud Sync Actions Card -->
-          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-900">Operasi Sinkronisasi Data Manual</h3>
-            <p class="text-xs text-slate-500">Anda dapat memaksa pengunggahan seluruh data lokal ke cloud atau menarik data terbaru dari cloud ke perangkat ini.</p>
-            
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-              <button type="button" id="btn-sync-up-supabase" class="p-3 text-left bg-emerald-50/60 hover:bg-emerald-100/60 border border-emerald-200 rounded-xl transition">
-                <div class="flex items-center gap-2 text-emerald-800 font-bold text-xs">
-                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                  </svg>
-                  Upload ke Cloud (Sync Up)
-                </div>
-                <p class="text-[11px] text-slate-500 mt-1">Mengunggah kelas, siswa, absensi, dan kop lokal ke database Supabase.</p>
-              </button>
-
-              <button type="button" id="btn-sync-down-supabase" class="p-3 text-left bg-indigo-50/60 hover:bg-indigo-100/60 border border-indigo-200 rounded-xl transition">
-                <div class="flex items-center gap-2 text-indigo-800 font-bold text-xs">
-                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                  Tarik dari Cloud (Sync Down)
-                </div>
-                <p class="text-[11px] text-slate-500 mt-1">Mengambil data dari Supabase untuk menggantikan atau memperbarui data lokal.</p>
-              </button>
-            </div>
-
-            <p id="supabase-last-sync-text" class="text-[11px] text-slate-400 font-mono pt-1 text-center sm:text-left">
-              Belum pernah disinkronkan
-            </p>
-          </div>
-
-          <!-- Supabase SQL Schema Helper Card -->
-          <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
-            <div class="flex items-center justify-between">
-              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-900">Skrip Skema SQL Supabase</h3>
-              <button type="button" id="btn-copy-supabase-sql" class="inline-flex items-center px-3 py-1 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition shadow-xs">
-                <svg class="w-3.5 h-3.5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
-                </svg>
-                Salin Skrip SQL
-              </button>
-            </div>
-            <p class="text-xs text-slate-500">Jalankan skrip ini sekali di menu <strong>SQL Editor</strong> di dashboard Supabase Anda untuk membuat 4 tabel (<code class="bg-slate-100 px-1 py-0.5 rounded">settings</code>, <code class="bg-slate-100 px-1 py-0.5 rounded">classes</code>, <code class="bg-slate-100 px-1 py-0.5 rounded">students</code>, <code class="bg-slate-100 px-1 py-0.5 rounded">attendance_sessions</code>) beserta kebijakan hak akses tanpa login.</p>
-            <div class="p-3 bg-slate-900 rounded-xl text-slate-300 text-[11px] font-mono overflow-x-auto max-h-36">
-              <pre>-- Buka supabase/schema.sql atau klik tombol "Salin Skrip SQL" di atas
-CREATE TABLE public.classes (id TEXT PRIMARY KEY, nama TEXT NOT NULL, ...);
-CREATE TABLE public.students (id TEXT PRIMARY KEY, nama TEXT NOT NULL, ...);
-CREATE TABLE public.attendance_sessions (...);
-CREATE TABLE public.settings (...);</pre>
-            </div>
-          </div>
-        </div>
-
-        <!-- SISI KANAN: GITHUB REPOSITORY & GITHUB PAGES (5 COLS) -->
-        <div class="lg:col-span-5 space-y-6">
-          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-            <div class="flex items-center gap-2 pb-3 border-b border-slate-100">
-              <div class="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center font-bold">
-                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
-                </svg>
-              </div>
-              <div>
-                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-900">Integrasi GitHub Repository</h3>
-                <p class="text-[11px] text-slate-400">Version control & free cloud hosting</p>
-              </div>
-            </div>
-
-            <!-- Workflow info -->
-            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-              <div class="flex items-center gap-2 text-xs font-bold text-slate-800">
-                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                GitHub Actions Workflow Terpasang
-              </div>
-              <p class="text-[11px] text-slate-500 leading-relaxed">
-                Berkas <code class="text-indigo-600 bg-white px-1 py-0.5 rounded border border-slate-200">.github/workflows/deploy.yml</code> telah disiapkan. Begitu kode didorong ke branch <code class="bg-white px-1 py-0.5 rounded border border-slate-200">main</code>, aplikasi web otomatis live di GitHub Pages!
-              </p>
-            </div>
-
-            <!-- Steps to push -->
-            <div class="space-y-3 pt-1 text-xs">
-              <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px]">3 Langkah Push ke GitHub:</h4>
-              
-              <div class="space-y-2">
-                <div class="flex items-start gap-2">
-                  <span class="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 font-bold text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
-                  <div>
-                    <p class="font-semibold text-slate-800">Buat Repository Baru di GitHub</p>
-                    <p class="text-slate-500 text-[11px]">Buka <a href="https://github.com/new" target="_blank" class="text-indigo-600 underline">github.com/new</a> dan beri nama misal: <code class="font-mono">e-absen-mapel</code> (Public).</p>
-                  </div>
-                </div>
-
-                <div class="flex items-start gap-2">
-                  <span class="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 font-bold text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
-                  <div>
-                    <p class="font-semibold text-slate-800">Jalankan Setup Otomatis</p>
-                    <p class="text-slate-500 text-[11px]">Klik ganda berkas <code class="bg-slate-100 px-1 py-0.5 rounded font-mono font-semibold">setup-github.bat</code> di folder project atau jalankan perintah git di bawah.</p>
-                  </div>
-                </div>
-
-                <div class="flex items-start gap-2">
-                  <span class="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 font-bold text-[10px] flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
-                  <div>
-                    <p class="font-semibold text-slate-800">Aktifkan GitHub Pages</p>
-                    <p class="text-slate-500 text-[11px]">Di repo GitHub: masuk ke <strong>Settings</strong> -> <strong>Pages</strong> -> ubah Source ke <strong>GitHub Actions</strong>.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Terminal Commands Box -->
-            <div class="space-y-1.5 pt-2">
-              <div class="flex items-center justify-between text-[11px] text-slate-500 font-mono">
-                <span>Perintah Manual Git:</span>
-              </div>
-              <div class="p-3 bg-slate-900 rounded-xl text-slate-200 font-mono text-[11px] space-y-1 overflow-x-auto">
-                <p class="text-slate-400"># Inisialisasi & Commit</p>
-                <p>git init</p>
-                <p>git add .</p>
-                <p>git commit -m "Initial commit: E-Absen"</p>
-                <p>git branch -M main</p>
-                <p class="text-slate-400 mt-2"># Hubungkan & Dorong ke Repo Anda</p>
-                <p>git remote add origin URL_GITHUB_ANDA</p>
-                <p>git push -u origin main</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
+    
   </main>
 
   <!-- ========================================================================= -->
@@ -1214,15 +973,15 @@ CREATE TABLE public.settings (...);</pre>
   <div id="toast-container" class="no-print fixed bottom-5 right-5 z-50 space-y-2 max-w-sm w-full pointer-events-none"></div>
 
   <!-- JAVASCRIPT MODULES -->
-  <script src="js/store.js?v=1.0.1"></script>
-  <script src="js/modules/settings.js?v=1.0.1"></script>
-  <script src="js/modules/classes.js?v=1.0.1"></script>
-  <script src="js/modules/students.js?v=1.0.1"></script>
-  <script src="js/modules/attendance.js?v=1.0.1"></script>
-  <script src="js/modules/recap.js?v=1.0.1"></script>
-  <script src="js/modules/print.js?v=1.0.1"></script>
-  <script src="js/supabase.js?v=1.0.1"></script>
-  <script src="js/appscript.js?v=1.0.1"></script>
-  <script src="js/app.js?v=1.0.1"></script>
+  <script src="js/store.js?v=1.0.2"></script>
+  <script src="js/modules/settings.js?v=1.0.2"></script>
+  <script src="js/modules/classes.js?v=1.0.2"></script>
+  <script src="js/modules/students.js?v=1.0.2"></script>
+  <script src="js/modules/attendance.js?v=1.0.2"></script>
+  <script src="js/modules/recap.js?v=1.0.2"></script>
+  <script src="js/modules/print.js?v=1.0.2"></script>
+  <script src="js/supabase.js?v=1.0.2"></script>
+  <script src="js/appscript.js?v=1.0.2"></script>
+  <script src="js/app.js?v=1.0.2"></script>
 </body>
 </html>

@@ -382,7 +382,7 @@ window.PrintModule = {
           <p class="font-semibold">Guru Mata Pelajaran</p>
           <div class="h-20"></div>
           <p class="font-bold underline uppercase">${escapeHtml(settings.namaGuru || '( .............................................. )')}</p>
-          <p>NIP/NUPTK. ${escapeHtml(settings.nipGuru || '..............................................')}</p>
+          <p>NIP. ${escapeHtml(settings.nipGuru || '..............................................')}</p>
         </div>
       </div>
     `;

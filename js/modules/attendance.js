@@ -173,8 +173,8 @@ window.AttendanceModule = {
     this.selectKelas.value = session.kelas;
     this.inputMapel.value = session.mataPelajaran || '';
     this.inputPertemuan.value = session.pertemuan;
-    this.inputJamKe.value = session.jamKe || '';
-    this.inputTopik.value = session.topik || '';
+    if (this.inputJamKe) this.inputJamKe.value = session.jamKe || '';
+    if (this.inputTopik) this.inputTopik.value = session.topik || '';
 
     this.editingBadge.classList.remove('hidden');
     this.renderAttendanceForm(session.records);
@@ -397,8 +397,8 @@ window.AttendanceModule = {
     const kelas = this.selectKelas.value;
     const mataPelajaran = this.inputMapel.value.trim();
     const pertemuan = Number(this.inputPertemuan.value) || 1;
-    const jamKe = this.inputJamKe.value.trim();
-    const topik = this.inputTopik.value.trim();
+    const jamKe = this.inputJamKe ? this.inputJamKe.value.trim() : '';
+    const topik = this.inputTopik ? this.inputTopik.value.trim() : '';
 
     if (!kelas) {
       window.App.toast('Pilih kelas terlebih dahulu', 'error');
@@ -534,7 +534,6 @@ window.AttendanceModule = {
           </td>
           <td class="px-4 py-3 text-center text-xs font-semibold text-slate-700">Ke-${s.pertemuan}</td>
           <td class="px-4 py-3 text-xs text-slate-600">${escapeHtml(s.mataPelajaran || '-')}</td>
-          <td class="px-4 py-3 text-xs text-slate-500 truncate max-w-xs">${escapeHtml(s.topik || '-')}</td>
           <td class="px-4 py-3 text-center">
             <div class="inline-flex items-center gap-1 text-xs font-mono font-medium">
               <span class="text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">H:${hCount}</span>

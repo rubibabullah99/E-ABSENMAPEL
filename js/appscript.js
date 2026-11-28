@@ -170,6 +170,40 @@ window.AppScriptModule = {
     this.testConnection(true);
   },
 
+  /* ================= 1-KLIK SINKRON CLOUD (GAS) ================= */
+  async quickSync() {
+    const config = this.getConfig();
+    if (!config.url) {
+      window.App.toast('URL Google Apps Script belum diisi! Silakan lengkapi di Pengaturan & Kop.', 'warning');
+      window.App.switchTab('pengaturan');
+      return;
+    }
+
+    const btn = document.getElementById('btn-quick-sync-cloud');
+    const icon = document.getElementById('sync-icon-spin');
+    const label = document.getElementById('sync-label-text');
+
+    if (btn) btn.disabled = true;
+    if (icon) icon.classList.add('animate-spin');
+    if (label) label.textContent = 'Menyinkronkan...';
+
+    window.App.toast('Sedang menyinkronkan data dengan Cloud (Google Sheets)...', 'info');
+
+    try {
+      const success = await this.syncUp(false);
+      if (success) {
+        window.App.toast('✓ Sukses! Seluruh data telah disinkronkan ke Cloud (GAS)', 'success');
+      }
+    } catch (e) {
+      console.error('Quick sync error:', e);
+      window.App.toast('Gagal menyinkronkan: ' + e.message, 'error');
+    } finally {
+      if (btn) btn.disabled = false;
+      if (icon) icon.classList.remove('animate-spin');
+      if (label) label.textContent = 'Sinkron Cloud';
+    }
+  },
+
   /* ================= AUTO INITIAL PULL ================= */
   async initialCheckAndSync() {
     const config = this.getConfig();
